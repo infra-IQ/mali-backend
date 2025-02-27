@@ -15,7 +15,7 @@ dotenv.config();
 const openai = new Openai({ apiKey: process.env.OPENAI_API_KEY });
 
 export class Chat {
-  isTimeToCallTool: boolean = false;
+  isTimeToCallTools: boolean = false;
   requestedToolCalls: FunctionToolCallArgumentsDeltaEvent[] = []
 
   async streamChatResponse(response: Response, body: ChatBody): Promise<Response> {
@@ -36,7 +36,7 @@ export class Chat {
     });
 
     openaiStream.on("chunk", (chunk) => {
-      response.write(`${JSON.stringify(chunk)}`);
+      response.write(`data: ${JSON.stringify(chunk)}\n\n`);
     });
  
     openaiStream.on("error", (error) => {
@@ -50,7 +50,7 @@ export class Chat {
     const { finish_reason } = final.choices[0];
 
     if (finish_reason === "tool_calls") {
-      this.isTimeToCallTool = true;
+      this.isTimeToCallTools = true;
       console.log("Last content:", this.requestedToolCalls);
     }
 

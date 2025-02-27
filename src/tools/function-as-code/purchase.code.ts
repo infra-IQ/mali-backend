@@ -1,1 +1,1 @@
-const purchase = () => {};
+export const purchase = () => {};
