@@ -9,7 +9,7 @@ import {
 } from "openai/resources";
 import { ChatBody } from "../dto/chat.dto";
 import { systemPrompt } from "../prompts/system";
-import { getMyRecentOrdersDefinition } from "../tools/definition/get-recent-order.definition";
+import { getOrdersDefinition } from "../tools/definition/get-orders.definition";
 import { purchaseDefinition } from "../tools/definition/purchase.definition";
 import { executor } from "../tools/executor";
 import { getMessages, saveMessage } from "./supabase.service";
@@ -62,6 +62,11 @@ export class Chat {
     if (finish_reason === "tool_calls") {
       for await (const toolCall of this.requestedToolCalls) {
         const result = executor(toolCall);
+        if(toolCall.name === "purchase") {  
+          this.signalProductPurchase(response, result);
+          return await this.endStream(response);
+        }
+        
         const customToolCallId = `${toolCall.index}-custom-id`;
         this.messages.push({
           role: "assistant",
@@ -87,8 +92,7 @@ export class Chat {
       return this.streamChatResponse(response);
     }
 
-    await this.persistUserAndAssistantMessage();
-    return response.end();
+    return this.endStream(response);
   }
 
   async persistUserAndAssistantMessage() {
@@ -110,7 +114,7 @@ export class Chat {
   }
 
   get tools(): ChatCompletionTool[] {
-    return [purchaseDefinition, getMyRecentOrdersDefinition].map((fn) => ({
+    return [purchaseDefinition, getOrdersDefinition].map((fn) => ({
       function: fn,
       type: "function",
     }));
@@ -129,6 +133,16 @@ export class Chat {
     const toolCall = this.requestedToolCalls[tool.index];
     toolCall.name = tool.name;
     toolCall.arguments = tool.arguments;
+  }
+
+  signalProductPurchase(response: Response, data: any) {
+    response.write(`data: ${JSON.stringify(data)}\n\n`);
+    return response.end();
+  }
+
+  async endStream(response: Response) {
+    await this.persistUserAndAssistantMessage();
+    return response.end();
   }
 
   static async getChatHistory(userId: string, conversationId: string) {

@@ -1,7 +1,7 @@
 import { FunctionDefinition } from "openai/resources";
 
-export const getMyRecentOrdersDefinition: FunctionDefinition = {
-  name: "getMyRecentOrders",
+export const getOrdersDefinition: FunctionDefinition = {
+  name: "getOrders",
   description: "Retrieves the user's recent orders within a specified date range.",
   parameters: {
     type: "object",

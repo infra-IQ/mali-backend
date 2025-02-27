@@ -5,24 +5,24 @@ export const purchaseDefinition: FunctionDefinition = {
   description: "Executes a purchase when the user wants to buy a product.",
   parameters: {
     type: "object",
-    required: ["id", "name"],
+    required: ["name", "quantity", "image", "amount"],
     properties: {
-      id: {
-        type: "string",
-        description: "The unique identifier of the product.",
-      },
       name: {
         type: "string",
         description: "The name of the product.",
       },
-      info: {
+      quantity: {
         type: "string",
-        description: "Additional details or description of the product.",
+        description: "The quantity of the product to purchase.",
       },
       image: {
         type: "string",
         description: "The URL of the product image.",
       },
+      amount: {
+        type: "number",
+        description: "The total amount of the purchase.",
+      }
     },
   },
 };

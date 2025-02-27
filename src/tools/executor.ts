@@ -1,13 +1,13 @@
 import { FunctionToolCallArgumentsDeltaEvent } from "openai/lib/ChatCompletionStream";
-import { getMyRecentOrders } from "./function-as-code/get-recent-order.code";
+import { getOrders } from "./function-as-code/get-orders";
 import { purchase } from "./function-as-code/purchase.code";
 
-export function executor(functionName: FunctionToolCallArgumentsDeltaEvent): string {
-  switch (functionName.name) {
-    case "getMyRecentOrders":
-      return getMyRecentOrders();
+export function executor(tool: FunctionToolCallArgumentsDeltaEvent): string {
+  switch (tool.name) {
+    case "getOrders":
+      return getOrders();
     case "purchase":
-      return purchase();
+      return purchase(tool);
     default:
       throw new Error("Function not found");
   }

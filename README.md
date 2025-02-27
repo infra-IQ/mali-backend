@@ -5,12 +5,12 @@ curl -X POST http://localhost:4000/api/conversations \
   }'
 
 
-curl -X POST https://mali-backend.onrender.com/api/chat \
+curl -X POST http://localhost:4000/api/chat \
   -H "Content-Type: application/json" \
   -d '{
-    "content": "What are my two recent purchase",
+    "content": "Only two",
     "userId": "f47ac10b-58cc-4372-a567-0e02b2c3d479", 
-    "conversationId": "56687888-a5d8-4976-9b60-4ab8a0900b76"
+    "conversationId": "43d4801a-410b-4c94-88a6-40db0541286a"
   }'
 
 
