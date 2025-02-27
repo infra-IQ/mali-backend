@@ -36,7 +36,7 @@ export class Chat {
     });
 
     openaiStream.on("chunk", (chunk) => {
-      response.write(`data: ${JSON.stringify(chunk)}\n\n`);
+      response.write(`${JSON.stringify(chunk)}`);
     });
  
     openaiStream.on("error", (error) => {
