@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import { Response } from "express";
 import Openai from "openai";
+import { FunctionToolCallArgumentsDeltaEvent } from "openai/lib/ChatCompletionStream";
 import {
   ChatCompletionSystemMessageParam,
   ChatCompletionTool,
@@ -14,23 +15,33 @@ dotenv.config();
 const openai = new Openai({ apiKey: process.env.OPENAI_API_KEY });
 
 export class Chat {
+  isTimeToCallTool: boolean = false;
+  requestedToolCalls: FunctionToolCallArgumentsDeltaEvent[] = []
 
-  static async streamChatResponse(
-    response: Response,
-    body: ChatBody
-  ): Promise<void> {
+  async streamChatResponse(response: Response, body: ChatBody): Promise<Response> {
     const openaiStream = openai.beta.chat.completions.stream({
-      model: "gpt-4",
+      model: "gpt-4o",
       messages: [
         this.buildSystemPrompt(),
         { role: "user", content: body.content },
       ],
       stream: true,
-      tools: Chat.tools,
+      tools: this.tools,
+    });
+
+
+    openaiStream.on("tool_calls.function.arguments.delta", (functionCallDelta) => {
+      this.captureToolCallFromChunks(functionCallDelta);
+      console.log("Function call delta:", functionCallDelta);
     });
 
     openaiStream.on("chunk", (chunk) => {
       response.write(`data: ${JSON.stringify(chunk)}\n\n`);
+    });
+ 
+    openaiStream.on("error", (error) => {
+      console.error("OpenAI stream error:", error);
+      response.end();
     });
 
 
@@ -38,32 +49,34 @@ export class Chat {
     const final = await openaiStream.finalChatCompletion();
     const { finish_reason } = final.choices[0];
 
-    if(finish_reason === "tool_calls") {
-      // const functionName 
-      // const toolcallResult = executor()
+    if (finish_reason === "tool_calls") {
+      this.isTimeToCallTool = true;
+      console.log("Last content:", this.requestedToolCalls);
     }
 
-    openaiStream.on("end", () => {
-      console.log("OpenAI stream ended");
-      response.write(`data: [DONE]\n\n`);
-      response.end();
-    });
 
-
-    openaiStream.on("error", (error) => {
-      console.error("OpenAI stream error:", error);
-      response.end();
-    });
+    return response.end()
   }
 
-  static get tools(): ChatCompletionTool[] {
+  get tools(): ChatCompletionTool[] {
     return [purchaseDefinition, getMyRecentOrdersDefinition].map((fn) => ({
       function: fn,
       type: "function",
     }));
   }
 
-  static buildSystemPrompt(): ChatCompletionSystemMessageParam {
+  buildSystemPrompt(): ChatCompletionSystemMessageParam {
     return { role: "system", content: systemPrompt };
+  }
+
+  captureToolCallFromChunks(tool: FunctionToolCallArgumentsDeltaEvent) {
+    if(!this.requestedToolCalls[tool.index]) {
+      this.requestedToolCalls.push(tool);
+      return
+    }
+
+    const toolCall = this.requestedToolCalls[tool.index];
+    toolCall.name = tool.name;
+    toolCall.arguments = tool.arguments;
   }
 }

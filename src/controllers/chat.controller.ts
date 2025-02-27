@@ -3,8 +3,6 @@ import { Body, HttpCode, JsonController, Post, Res } from "routing-controllers";
 import { ChatBody } from "../dto/chat.dto";
 import { Chat } from "../services/chat.service";
 
-
-
 @JsonController("/api/chat")
 export class ChatController {
   @Post("")
@@ -19,7 +17,8 @@ export class ChatController {
       Connection: "keep-alive",
     });
 
-     await Chat.streamChatResponse(response, body);
-     return response.end()
+    const newChat = new Chat();
+    return await newChat.streamChatResponse(response, body);
+    
   }
 }
