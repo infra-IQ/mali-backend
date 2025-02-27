@@ -4,7 +4,7 @@ import { createConversation, createUser } from "../services/supabase.service";
 
 @JsonController("/api/conversations")
 export class ConversationController {
-  @Post("")
+  @Post()
   async create(@Body() chatBody: { userId: string }) {
     const uiid = randomUUID();
 
