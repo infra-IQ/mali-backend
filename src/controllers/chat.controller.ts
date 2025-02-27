@@ -17,8 +17,8 @@ export class ChatController {
       Connection: "keep-alive",
     });
 
-    const newChat = new Chat();
-    return await newChat.streamChatResponse(response, body);
+    const newChat = new Chat(body);
+    return await newChat.streamChatResponse(response);
     
   }
 }

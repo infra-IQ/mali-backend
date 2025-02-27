@@ -1,1 +1,3 @@
-export const purchase = () => {};
+export const purchase = () => {
+    return "Purchase completed";
+};
