@@ -1,7 +1,18 @@
 import { type Response } from "express";
-import { Body, HttpCode, JsonController, Post, Res } from "routing-controllers";
+import {
+  BadRequestError,
+  Body,
+  HttpCode,
+  JsonController,
+  Post,
+  Res,
+} from "routing-controllers";
 import { ChatBody } from "../dto/chat.dto";
 import { Chat } from "../services/chat.service";
+import {
+  checkConversationExist,
+  checkIdUserExist,
+} from "../services/supabase.service";
 
 @JsonController("/api/chat")
 export class ChatController {
@@ -17,10 +28,18 @@ export class ChatController {
       Connection: "keep-alive",
     });
 
-    const chatHistory = await Chat.getChatHistory(body.userId, body.conversationId);
-    
+    const conversationExist = await checkConversationExist(body.conversationId);
+    const userExist = await checkIdUserExist(body.userId);
+    if (!conversationExist || !userExist) {
+      throw new BadRequestError("Conversation or User not found");
+    }
+
+    const chatHistory = await Chat.getChatHistory(
+      body.userId,
+      body.conversationId
+    );
+
     const newChat = new Chat(body, chatHistory);
     return await newChat.streamChatResponse(response);
-    
   }
 }

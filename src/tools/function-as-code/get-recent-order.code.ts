@@ -1,5 +1,5 @@
-import { restaurants } from "../../mocks/restorants";
+import { restaurants } from "../../mocks/restaurants";
 
 export const getMyRecentOrders = () => {
-    return JSON.stringify(restaurants.splice(0, 3));
+  return JSON.stringify(restaurants.splice(0, 3));
 };

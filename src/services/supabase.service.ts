@@ -102,3 +102,21 @@ export async function createUser(userId: string) {
 
   return data;
 }
+
+export const checkIdUserExist = async (userId: string) => {
+  const { data } = await supabase
+    .from("users")
+    .select("id")
+    .eq("id", userId)
+    .single();
+  return data;
+};
+
+export const checkConversationExist = async (conversationId: string) => {
+  const { data } = await supabase
+    .from("conversations")
+    .select("id")
+    .eq("id", conversationId)
+    .single();
+  return data;
+};

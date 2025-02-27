@@ -48,7 +48,6 @@ export class Chat {
 
     openaiStream.on("chunk", (chunk) => {
       this.assistantContentTracker += chunk.choices[0].delta.content || "";
-
       response.write(`data: ${JSON.stringify(chunk)}\n\n`);
     });
 
@@ -84,12 +83,10 @@ export class Chat {
           role: "tool",
           content: result || "Unable to find the result",
         });
-
-        return this.streamChatResponse(response);
       }
+      return this.streamChatResponse(response);
     }
 
-    // Save assistant and user message
     await this.persistUserAndAssistantMessage();
     return response.end();
   }
