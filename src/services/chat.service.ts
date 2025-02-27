@@ -39,7 +39,8 @@ export class Chat {
     const { finish_reason } = final.choices[0];
 
     if(finish_reason === "tool_calls") {
-      
+      // const functionName 
+      // const toolcallResult = executor()
     }
 
     openaiStream.on("end", () => {

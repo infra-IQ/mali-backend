@@ -20,6 +20,6 @@ export class ChatController {
     });
 
      await Chat.streamChatResponse(response, body);
-     return response
+     return response.end()
   }
 }
