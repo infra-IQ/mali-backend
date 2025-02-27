@@ -12,7 +12,7 @@ import { systemPrompt } from "../prompts/system";
 import { getMyRecentOrdersDefinition } from "../tools/definition/get-recent-order.definition";
 import { purchaseDefinition } from "../tools/definition/purchase.definition";
 import { executor } from "../tools/executor";
-import { saveMessage } from "./supabase.service";
+import { getMessages, saveMessage } from "./supabase.service";
 dotenv.config();
 
 const openai = new Openai({ apiKey: process.env.OPENAI_API_KEY });
@@ -24,7 +24,8 @@ export class Chat {
   messages: ChatCompletionMessageParam[] = [this.buildSystemPrompt()];
   body: ChatBody;
 
-  constructor(body: ChatBody) {
+  constructor(body: ChatBody, chatHistory: ChatCompletionMessageParam[]) {
+    this.messages = [...this.messages, ...chatHistory];
     this.messages.push({ role: "user", content: body.content });
     this.body = body;
   }
@@ -131,5 +132,14 @@ export class Chat {
     const toolCall = this.requestedToolCalls[tool.index];
     toolCall.name = tool.name;
     toolCall.arguments = tool.arguments;
+  }
+
+  static async getChatHistory(userId: string, conversationId: string) {
+    const messages = await getMessages(conversationId);
+
+    return messages.map((message) => ({
+      role: message.role,
+      content: message.content,
+    }));
   }
 }

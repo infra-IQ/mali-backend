@@ -17,7 +17,9 @@ export class ChatController {
       Connection: "keep-alive",
     });
 
-    const newChat = new Chat(body);
+    const chatHistory = await Chat.getChatHistory(body.userId, body.conversationId);
+    
+    const newChat = new Chat(body, chatHistory);
     return await newChat.streamChatResponse(response);
     
   }
