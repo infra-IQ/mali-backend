@@ -5,7 +5,7 @@ import {
   useExpressServer,
 } from "routing-controllers";
 import { ChatController } from "./controllers/chat.controller";
-import { ConversationController } from "./controllers/conversation.service";
+import { ConversationController } from "./controllers/conversation.controller";
 
 const app = express();
 const options: RoutingControllersOptions = {
