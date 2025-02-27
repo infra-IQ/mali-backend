@@ -12,17 +12,21 @@ import { systemPrompt } from "../prompts/system";
 import { getMyRecentOrdersDefinition } from "../tools/definition/get-recent-order.definition";
 import { purchaseDefinition } from "../tools/definition/purchase.definition";
 import { executor } from "../tools/executor";
+import { saveMessage } from "./supabase.service";
 dotenv.config();
 
 const openai = new Openai({ apiKey: process.env.OPENAI_API_KEY });
 
 export class Chat {
-  isTimeToCallTools: boolean = false;
   requestedToolCalls: FunctionToolCallArgumentsDeltaEvent[] = [];
+  assistantContentTracker = "";
+
   messages: ChatCompletionMessageParam[] = [this.buildSystemPrompt()];
+  body: ChatBody;
 
   constructor(body: ChatBody) {
     this.messages.push({ role: "user", content: body.content });
+    this.body = body;
   }
 
   async streamChatResponse(response: Response): Promise<Response> {
@@ -42,6 +46,8 @@ export class Chat {
     );
 
     openaiStream.on("chunk", (chunk) => {
+      this.assistantContentTracker += chunk.choices[0].delta.content || "";
+
       response.write(`data: ${JSON.stringify(chunk)}\n\n`);
     });
 
@@ -53,15 +59,10 @@ export class Chat {
     const final = await openaiStream.finalChatCompletion();
     const { finish_reason } = final.choices[0];
 
-    console.log("Final:", finish_reason);
-
     if (finish_reason === "tool_calls") {
-      this.isTimeToCallTools = true;
-      console.log("Last content:", this.requestedToolCalls);
-
       for await (const toolCall of this.requestedToolCalls) {
         const result = executor(toolCall);
-        const customToolCallId = `${toolCall.index}-custom-id`; 
+        const customToolCallId = `${toolCall.index}-custom-id`;
         this.messages.push({
           role: "assistant",
           content: null,
@@ -77,19 +78,37 @@ export class Chat {
           ],
         });
 
-       this.messages.push({
+        this.messages.push({
           tool_call_id: customToolCallId,
           role: "tool",
           content: result || "Unable to find the result",
         });
 
-        console.log("Time for tool callssssss", toolCall);
-
         return this.streamChatResponse(response);
       }
     }
 
+    // Save assistant and user message
+    await this.persistUserAndAssistantMessage();
     return response.end();
+  }
+
+  async persistUserAndAssistantMessage() {
+    await saveMessage({
+      user_id: this.body.userId,
+      content: this.body.content,
+      conversation_id: this.body.conversationId,
+      timestamp: new Date().toISOString(),
+      role: "user",
+    });
+
+    await saveMessage({
+      conversation_id: this.body.conversationId,
+      user_id: this.body.userId,
+      content: this.assistantContentTracker,
+      timestamp: new Date().toISOString(),
+      role: "assistant",
+    });
   }
 
   get tools(): ChatCompletionTool[] {

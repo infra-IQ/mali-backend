@@ -5,11 +5,12 @@ import {
   useExpressServer,
 } from "routing-controllers";
 import { ChatController } from "./controllers/chat.controller";
+import { ConversationController } from "./controllers/conversation.service";
 
 const app = express();
 const options: RoutingControllersOptions = {
   middlewares: [],
-  controllers: [ChatController],
+  controllers: [ChatController, ConversationController],
   cors: true,
 };
 
