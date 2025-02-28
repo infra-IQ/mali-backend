@@ -2,13 +2,12 @@ import { FunctionToolCallArgumentsDeltaEvent } from "openai/lib/ChatCompletionSt
 
 export const purchase = (tool: FunctionToolCallArgumentsDeltaEvent) => {
   const args = JSON.parse(tool.arguments);
-  const customChunk = {
+
+  return JSON.stringify({
     choices: [],
     signal: {
       type: "product_purchase",
       data: [args],
     },
-  };
-
-  return JSON.stringify(customChunk);
+  });
 };

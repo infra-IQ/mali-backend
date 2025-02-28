@@ -63,7 +63,7 @@ export class Chat {
       for await (const toolCall of this.requestedToolCalls) {
         const result = executor(toolCall);
         if(toolCall.name === "purchase") {  
-          this.signalProductPurchase(response, result);
+          this.signalProductPurchase(response, JSON.parse(result));
           return await this.endStream(response);
         }
         
