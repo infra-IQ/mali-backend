@@ -7,6 +7,10 @@ export const purchaseDefinition: FunctionDefinition = {
     type: "object",
     required: ["name", "quantity", "image", "amount"],
     properties: {
+      id: {
+        type: "string",
+        description: "The ID of the product.",
+      },
       name: {
         type: "string",
         description: "The name of the product.",
@@ -22,7 +26,11 @@ export const purchaseDefinition: FunctionDefinition = {
       amount: {
         type: "number",
         description: "The total amount of the purchase.",
-      }
+      },
+      address: {
+        type: "string",
+        description: "The restaurants wallet address.",
+      },
     },
   },
 };
